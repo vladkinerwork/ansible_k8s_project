@@ -1,0 +1,24 @@
+---
+
+- name: Create HPA for Redis
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: autoscaling/v2beta2
+      kind: HorizontalPodAutoscaler
+      metadata:
+        name: "{{ database_name }}-hpa"
+        namespace: "{{ namespace_name }}"
+      spec:
+        scaleTargetRef:
+          apiVersion: apps/v1
+          kind: StatefulSet
+          name: "{{ database_name }}"
+        minReplicas: 3
+        maxReplicas: 5
+        metrics:
+        - type: Resource
+          resource:
+            name: memory
+            target:
+              type: Utilization
+              averageUtilization: 30

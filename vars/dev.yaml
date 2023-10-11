@@ -1,0 +1,4 @@
+namespace_name: redis-database-dev
+database_name: redis-ss-dev
+database_label: redis-dev
+replicas: 1

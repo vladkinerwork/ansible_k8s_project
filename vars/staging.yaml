@@ -1,0 +1,4 @@
+namespace_name: redis-database-stage
+database_name: redis-ss-stage
+database_label: redis-stage
+replicas: 3

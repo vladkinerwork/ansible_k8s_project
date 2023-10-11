@@ -1,0 +1,4 @@
+namespace_name: redis-database-prod
+database_name: redis-ss-prod
+database_label: redis-prod
+replicas: 5

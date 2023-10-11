@@ -1,0 +1,20 @@
+---
+
+- name: Create a Redis Configmap
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        namespace: "{{ namespace_name }}"
+        name: "{{ database_name }}-config"
+      data:
+        master.conf: |
+          maxmemory 50mb
+          maxmemory-policy allkeys-lru
+          dir /data
+        slave.conf: |
+          slaveof "{{ database_name }}"-0.redis-service.redis-database.svc.cluster.local 6379
+          maxmemory 50mb
+          maxmemory-policy allkeys-lru
+          dir /data

@@ -1,0 +1,19 @@
+---
+
+- name: Create service for Redis StatefulSet
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: "{{ database_name }}-service"
+        namespace: "{{ namespace_name }}"
+        labels:
+          app: "{{ database_label }}"
+      spec:
+        ports:
+          - port: 6379
+            name: "{{ database_name }}"
+        clusterIP: None
+        selector:
+          app: "{{ database_label }}"

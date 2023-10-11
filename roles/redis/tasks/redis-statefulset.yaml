@@ -1,0 +1,91 @@
+---
+
+- name: Create Redis StatefulSet
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: apps/v1
+      kind: StatefulSet
+      metadata:
+        name: "{{ database_name }}"
+        namespace: "{{ namespace_name }}"
+      spec:
+        serviceName: "{{ database_name }}-service"
+        replicas: "{{ replicas }}"
+        selector:
+          matchLabels:
+            app: "{{ database_label }}"
+        template:
+          metadata:
+            labels:
+              app: "{{ database_label }}"
+          spec:
+            initContainers:
+            - name: init-redis
+              image: redis:latest
+              resources:
+                requests:
+                  memory: "50Mi"
+                  cpu: "100m"
+                limits:
+                  memory: "100Mi"
+                  cpu: "200m"
+              command:
+              - bash
+              - "-c"
+              - |
+                set -ex
+                # Generate redis server-id from pod ordinal index.
+                [[ `hostname` =~ -([0-9]+)$ ]] || exit 1
+                ordinal=${BASH_REMATCH[1]}
+                # Copy appropriate redis config files from config-map to respective directories.
+                if [[ $ordinal -eq 0 ]]; then
+                  cp /mnt/master.conf /etc/redis-config.conf
+                else
+                  cp /mnt/slave.conf /etc/redis-config.conf
+                fi
+              volumeMounts:
+              - name: redis-claim
+                mountPath: /etc
+              - name: config-map
+                mountPath: /mnt/
+            containers:
+            - name: redis
+              image: redis:latest
+              ports:
+              - containerPort: 6379
+                name: "{{ database_name }}"
+              env:
+              - name: REDIS_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: "{{ database_name }}-secret"
+                    key: redis-password
+              command:
+                - redis-server
+                - "/etc/redis-config.conf"
+              volumeMounts:
+              - name: redis-data
+                mountPath: /data
+              - name: redis-claim
+                mountPath: /etc
+            volumes:
+            - name: config-map
+              configMap:
+                name: redis-config                  
+        volumeClaimTemplates:
+        - metadata:
+            name: redis-claim
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            storageClassName: "gp2"
+            resources:
+              requests:
+                storage: 2Gi
+        - metadata:
+            name: redis-data
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            storageClassName: "gp2"
+            resources:
+              requests:
+                storage: 2Gi

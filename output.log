@@ -1,0 +1,13 @@
+Using /Users/olgakiner/ansible_k8s_project/ansible.cfg as config file
+
+PLAY [Deploy Redis Database] ***************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [deployment_coordinator]
+
+TASK [Debug Namespace Variable] ************************************************
+ok: [deployment_coordinator] => {
+    "namespace": "<class 'jinja2.utils.Namespace'>"
+}
+
+TASK [Create a k8s namespace] **************************************************

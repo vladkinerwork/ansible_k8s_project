@@ -1,0 +1,33 @@
+- name: Deploy Redis Database
+  hosts: deployment_coordinator
+  tasks:
+    - name: Debug Namespace Variable
+      debug:
+        var: namespace
+
+    - name: Create a k8s namespace
+      kubernetes.core.k8s:
+        name: "{{ namespace_name }}"
+        api_version: v1
+        kind: Namespace
+        state: present
+    - name: Create ConfigMap
+      ansible.builtin.import_role:
+        name: redis
+        tasks_from: configmap
+    - name: Create Secret
+      ansible.builtin.import_role:
+        name: redis
+        tasks_from: secret
+    - name: Create Service
+      ansible.builtin.import_role:
+        name: redis
+        tasks_from: service
+    - name: Create Redis-statefulset
+      ansible.builtin.import_role:
+        name: redis
+        tasks_from: redis-statefulset
+    - name: Create Redis HPA
+      ansible.builtin.import_role:
+        name: redis
+        tasks_from: redis-hpa
